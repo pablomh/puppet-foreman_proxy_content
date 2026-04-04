@@ -8,6 +8,12 @@
 #   The port to listen on
 # @param ssl_protocol
 #   The ssl protocol(s) to accept
+# @param access_log_format
+#   Apache access log format. Defaults to undef (Apache's standard combined format).
+#   To enable enhanced registration observability, set to 'foreman_combined' which
+#   adds %D (request time in microseconds) and %{X-Forwarded-For}i (original client
+#   IP chain through capsule hops) appended after the standard fields.
+#   Example (Hiera): foreman_proxy_content::reverse_proxy::access_log_format: foreman_combined
 # @param vhost_params
 #   Any parameters to pass to the apache::vhost resource
 # @param proxy_pass_params
@@ -21,6 +27,7 @@ define foreman_proxy_content::reverse_proxy (
   Hash[Stdlib::Unixpath, String[1]] $path_url_map = { '/' => "${foreman_proxy_content::foreman_url}/" },
   Stdlib::Port $port = 443,
   Variant[Array[String], String, Undef] $ssl_protocol = undef,
+  Optional[String] $access_log_format = undef,
   Hash[String, Any] $vhost_params = {},
   Hash[String, Variant[String, Integer]] $proxy_pass_params = { 'disablereuse' => 'on', 'retry' => '0' },
   Enum['present', 'absent'] $ensure = 'present',
@@ -65,6 +72,12 @@ define foreman_proxy_content::reverse_proxy (
     ssl_protocol           => $ssl_protocol,
     request_headers        => ['set X_RHSM_SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"'],
     proxy_pass             => $proxy_pass,
+    access_log_format      => $access_log_format,
+    log_formats            => {
+      # Named alias for enhanced registration observability.
+      # Opt in by setting: access_log_format => foreman_combined
+      'foreman_combined' => '%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D \"%{X-Forwarded-For}i\"',
+    },
     error_documents        => [
       {
         'error_code' => '500',

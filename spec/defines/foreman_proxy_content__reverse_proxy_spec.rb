@@ -77,6 +77,29 @@ describe 'foreman_proxy_content::reverse_proxy' do
           it { is_expected.to contain_apache__vhost('katello-reverse-proxy').with_keepalive('on') }
         end
 
+        context 'access log format' do
+          let(:title) { 'katello-reverse-proxy' }
+
+          it 'defines foreman_combined log format alias by default' do
+            is_expected.to contain_apache__vhost('katello-reverse-proxy')
+              .with_log_formats({ 'foreman_combined' => '%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D \"%{X-Forwarded-For}i\"' })
+          end
+
+          it 'uses default combined format when access_log_format is not set' do
+            is_expected.to contain_apache__vhost('katello-reverse-proxy')
+              .with_access_log_format(nil)
+          end
+
+          context 'with access_log_format set to foreman_combined' do
+            let(:params) { super().merge(access_log_format: 'foreman_combined') }
+
+            it 'passes access_log_format to the vhost' do
+              is_expected.to contain_apache__vhost('katello-reverse-proxy')
+                .with_access_log_format('foreman_combined')
+            end
+          end
+        end
+
         context 'with proxy_pass_params' do
           let(:params) { super().merge(proxy_pass_params: {disablereuse: 'off'}) }
           let(:title) { 'katello-reverse-proxy' }
