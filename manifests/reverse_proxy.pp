@@ -1,11 +1,19 @@
 # Adds http reverse-proxy to parent conf
 #
+# @param docroot
+#   The document root for the reverse proxy to use
 # @param path_url_map
 #   The paths and corresponding URLs where to mount the reverse proxy
 # @param port
 #   The port to listen on
 # @param ssl_protocol
 #   The ssl protocol(s) to accept
+# @param access_log_format
+#   Apache access log format. Defaults to undef (Apache's standard combined format).
+#   To enable enhanced registration observability, set to 'foreman_combined' which
+#   adds %D (request time in microseconds) and %{X-Forwarded-For}i (original client
+#   IP chain through capsule hops) appended after the standard fields.
+#   Example (Hiera): foreman_proxy_content::reverse_proxy::access_log_format: foreman_combined
 # @param vhost_params
 #   Any parameters to pass to the apache::vhost resource
 # @param proxy_pass_params
@@ -15,9 +23,11 @@
 # @param priority
 #   Sets the relative load-order for Apache HTTPD VirtualHost configuration files. See Apache::Vhost
 define foreman_proxy_content::reverse_proxy (
-  Hash[Stdlib::Unixpath, Stdlib::Httpurl] $path_url_map = { '/' => "${foreman_proxy_content::foreman_url}/" },
-  Stdlib::Port $port = $foreman_proxy_content::reverse_proxy_port,
+  Stdlib::Absolutepath $docroot = '/var/www/html',
+  Hash[Stdlib::Unixpath, String[1]] $path_url_map = { '/' => "${foreman_proxy_content::foreman_url}/" },
+  Stdlib::Port $port = 443,
   Variant[Array[String], String, Undef] $ssl_protocol = undef,
+  Optional[String] $access_log_format = undef,
   Hash[String, Any] $vhost_params = {},
   Hash[String, Variant[String, Integer]] $proxy_pass_params = { 'disablereuse' => 'on', 'retry' => '0' },
   Enum['present', 'absent'] $ensure = 'present',
@@ -31,7 +41,7 @@ define foreman_proxy_content::reverse_proxy (
 
   $vhost_name = $title
 
-  $proxy_pass = $path_url_map.map |Stdlib::Unixpath $path, Stdlib::Httpurl $url| {
+  $proxy_pass = $path_url_map.map |$path, $url| {
     {
       'path'         => $path,
       'url'          => $url,
@@ -45,22 +55,29 @@ define foreman_proxy_content::reverse_proxy (
     servername             => $certs::apache::hostname,
     serveraliases          => $certs::apache::cname,
     port                   => $port,
-    docroot                => '/var/www/',
+    docroot                => $docroot,
     priority               => $priority,
+    options                => ['FollowSymLinks'],
     ssl_options            => ['+StdEnvVars', '+ExportCertData', '+FakeBasicAuth'],
     ssl                    => true,
     ssl_proxyengine        => true,
-    ssl_proxy_ca_cert      => $certs::ca_cert,
+    ssl_proxy_ca_cert      => $certs::apache::apache_client_ca_cert,
     ssl_proxy_machine_cert => $certs::foreman_proxy::foreman_proxy_ssl_client_bundle,
     ssl_cert               => $certs::apache::apache_cert,
     ssl_key                => $certs::apache::apache_key,
     ssl_chain              => $certs::apache::apache_ca_cert,
-    ssl_ca                 => $certs::apache::ca_cert,
+    ssl_ca                 => $certs::apache::apache_client_ca_cert,
     ssl_verify_client      => 'optional',
     ssl_verify_depth       => 10,
     ssl_protocol           => $ssl_protocol,
     request_headers        => ['set X_RHSM_SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"'],
     proxy_pass             => $proxy_pass,
+    access_log_format      => $access_log_format,
+    log_formats            => {
+      # Named alias for enhanced registration observability.
+      # Opt in by setting: access_log_format => foreman_combined
+      'foreman_combined' => '%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D \"%{X-Forwarded-For}i\"',
+    },
     error_documents        => [
       {
         'error_code' => '500',

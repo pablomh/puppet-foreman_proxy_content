@@ -1,5 +1,177 @@
 # Changelog
 
+## [32.1.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/32.1.0) (2026-03-03)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/32.0.0...32.1.0)
+
+**Implemented enhancements:**
+
+- Fixes [\#39093](https://projects.theforeman.org/issues/39093) - add container gateway db connection options [\#532](https://github.com/theforeman/puppet-foreman_proxy_content/pull/532) ([ianballou](https://github.com/ianballou))
+
+## [32.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/32.0.0) (2026-01-28)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/31.3.0...32.0.0)
+
+**Breaking changes:**
+
+- Drop support for Puppet 7 [\#529](https://github.com/theforeman/puppet-foreman_proxy_content/pull/529) ([evgeni](https://github.com/evgeni))
+
+**Implemented enhancements:**
+
+- Add support for OpenVox [\#530](https://github.com/theforeman/puppet-foreman_proxy_content/pull/530) ([evgeni](https://github.com/evgeni))
+- Allow theforeman/foreman\_proxy 30.x, theforeman/pulpcore 14.x [\#528](https://github.com/theforeman/puppet-foreman_proxy_content/pull/528) ([evgeni](https://github.com/evgeni))
+
+## [31.3.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/31.3.0) (2025-11-06)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/31.2.0...31.3.0)
+
+**Implemented enhancements:**
+
+- Allow puppetlabs/apache 13.x [\#525](https://github.com/theforeman/puppet-foreman_proxy_content/pull/525) ([shubhamsg199](https://github.com/shubhamsg199))
+
+## [31.2.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/31.2.0) (2025-08-08)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/31.1.0...31.2.0)
+
+**Implemented enhancements:**
+
+- Allow puppet-pulpcore 13.0.0 [\#523](https://github.com/theforeman/puppet-foreman_proxy_content/pull/523) ([ehelms](https://github.com/ehelms))
+- Add Apache proxy for flatpak index [\#522](https://github.com/theforeman/puppet-foreman_proxy_content/pull/522) ([ianballou](https://github.com/ianballou))
+
+## [31.1.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/31.1.0) (2025-05-13)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/31.0.0...31.1.0)
+
+**Implemented enhancements:**
+
+- Mark compatible with katello/certs 21.x [\#520](https://github.com/theforeman/puppet-foreman_proxy_content/pull/520) ([ekohl](https://github.com/ekohl))
+- Add proxy pass entry for lightspeed API [\#518](https://github.com/theforeman/puppet-foreman_proxy_content/pull/518) ([ehelms](https://github.com/ehelms))
+- Set client\_endpoint on container\_gateway plugin [\#517](https://github.com/theforeman/puppet-foreman_proxy_content/pull/517) ([ehelms](https://github.com/ehelms))
+- Do not require File resource for SSL cert in bootstrap RPM class [\#516](https://github.com/theforeman/puppet-foreman_proxy_content/pull/516) ([ehelms](https://github.com/ehelms))
+- Use correct CA variables in reverse proxy [\#515](https://github.com/theforeman/puppet-foreman_proxy_content/pull/515) ([ehelms](https://github.com/ehelms))
+- Rely on the generated CA certificate [\#512](https://github.com/theforeman/puppet-foreman_proxy_content/pull/512) ([ehelms](https://github.com/ehelms))
+- Provide certs as input to boostrap\_rpm class [\#511](https://github.com/theforeman/puppet-foreman_proxy_content/pull/511) ([ehelms](https://github.com/ehelms))
+- Drop dependency on certs::foreman\_proxy from container class [\#509](https://github.com/theforeman/puppet-foreman_proxy_content/pull/509) ([ehelms](https://github.com/ehelms))
+
+**Fixed bugs:**
+
+- Require a version of theforeman/foreman\_proxy w/ client\_endpoint [\#519](https://github.com/theforeman/puppet-foreman_proxy_content/pull/519) ([ekohl](https://github.com/ekohl))
+- Always compare CNs as downcase [\#510](https://github.com/theforeman/puppet-foreman_proxy_content/pull/510) ([ehelms](https://github.com/ehelms))
+
+## [31.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/31.0.0) (2025-02-13)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/30.0.0...31.0.0)
+
+**Breaking changes:**
+
+- Drop EL8 support -- Foreman/Katello do not support EL8 anymore [\#503](https://github.com/theforeman/puppet-foreman_proxy_content/pull/503) ([evgeni](https://github.com/evgeni))
+
+**Implemented enhancements:**
+
+- Allow puppet-foreman\_proxy 28.0.0 [\#507](https://github.com/theforeman/puppet-foreman_proxy_content/pull/507) ([ehelms](https://github.com/ehelms))
+- Allow puppet-pulpcore 12.0.0 [\#506](https://github.com/theforeman/puppet-foreman_proxy_content/pull/506) ([ehelms](https://github.com/ehelms))
+- Allow puppet-certs 20.0.0 [\#505](https://github.com/theforeman/puppet-foreman_proxy_content/pull/505) ([ehelms](https://github.com/ehelms))
+
+**Fixed bugs:**
+
+- use the correct backend protocol when defining the gpg proxy [\#502](https://github.com/theforeman/puppet-foreman_proxy_content/pull/502) ([evgeni](https://github.com/evgeni))
+
+## [30.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/30.0.0) (2024-11-04)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/29.0.1...30.0.0)
+
+**Breaking changes:**
+
+- Drop port 8443 as a reverse proxy [\#496](https://github.com/theforeman/puppet-foreman_proxy_content/pull/496) ([ehelms](https://github.com/ehelms))
+
+**Implemented enhancements:**
+
+- Mark compatible with theforeman/foreman\_proxy 27.x [\#498](https://github.com/theforeman/puppet-foreman_proxy_content/pull/498) ([ekohl](https://github.com/ekohl))
+- Mark compatible with theforeman/pulpcore 11.x [\#497](https://github.com/theforeman/puppet-foreman_proxy_content/pull/497) ([ekohl](https://github.com/ekohl))
+
+## [29.0.1](https://github.com/theforeman/puppet-foreman_proxy_content/tree/29.0.1) (2024-08-21)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/29.0.0...29.0.1)
+
+**Fixed bugs:**
+
+- Drop redundant update-ca-trust enable step [\#494](https://github.com/theforeman/puppet-foreman_proxy_content/pull/494) ([ekohl](https://github.com/ekohl))
+
+## [29.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/29.0.0) (2024-08-16)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/28.0.0...29.0.0)
+
+**Breaking changes:**
+
+- Fixes [\#37701](https://projects.theforeman.org/issues/37701): Default 8443 reverse proxy to off [\#487](https://github.com/theforeman/puppet-foreman_proxy_content/pull/487) ([ehelms](https://github.com/ehelms))
+
+**Implemented enhancements:**
+
+- Fixes [\#37620](https://projects.theforeman.org/issues/37620) - Use the correct docroot in the reverse proxy setup [\#490](https://github.com/theforeman/puppet-foreman_proxy_content/pull/490) ([ekohl](https://github.com/ekohl))
+- Mark compatible with katello/certs 19.x [\#489](https://github.com/theforeman/puppet-foreman_proxy_content/pull/489) ([ekohl](https://github.com/ekohl))
+- Add AlmaLinux 8 & 9 support [\#485](https://github.com/theforeman/puppet-foreman_proxy_content/pull/485) ([archanaserver](https://github.com/archanaserver))
+
+**Fixed bugs:**
+
+- Fixes [\#37707](https://projects.theforeman.org/issues/37707) - Purge container\_gateway feature without docker [\#488](https://github.com/theforeman/puppet-foreman_proxy_content/pull/488) ([ekohl](https://github.com/ekohl))
+
+## [28.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/28.0.0) (2024-05-21)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/27.0.0...28.0.0)
+
+**Breaking changes:**
+
+- Remove qpid class [\#476](https://github.com/theforeman/puppet-foreman_proxy_content/pull/476) ([ehelms](https://github.com/ehelms))
+
+**Implemented enhancements:**
+
+- Mark compatible with theforeman/foreman\_proxy 26.x [\#483](https://github.com/theforeman/puppet-foreman_proxy_content/pull/483) ([ekohl](https://github.com/ekohl))
+- Mark compatible with katello/certs 18.x [\#482](https://github.com/theforeman/puppet-foreman_proxy_content/pull/482) ([ekohl](https://github.com/ekohl))
+- Allow puppetlabs/apache 12.x [\#478](https://github.com/theforeman/puppet-foreman_proxy_content/pull/478) ([evgeni](https://github.com/evgeni))
+
+**Fixed bugs:**
+
+- enforce xz compression for consumer rpm [\#480](https://github.com/theforeman/puppet-foreman_proxy_content/pull/480) ([evgeni](https://github.com/evgeni))
+- Refs [\#37130](https://projects.theforeman.org/issues/37130) - Set the mode on the generated bootstrap RPM [\#477](https://github.com/theforeman/puppet-foreman_proxy_content/pull/477) ([ehelms](https://github.com/ehelms))
+
+## [27.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/27.0.0) (2024-02-20)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/26.0.0...27.0.0)
+
+**Breaking changes:**
+
+- Refs [\#37062](https://projects.theforeman.org/issues/37062) - Use pulpcore::analytics instead of pulpcore::telemetry [\#470](https://github.com/theforeman/puppet-foreman_proxy_content/pull/470) ([wbclark](https://github.com/wbclark))
+
+**Implemented enhancements:**
+
+- Mark compatible with theforeman/pulpcore 10.x [\#473](https://github.com/theforeman/puppet-foreman_proxy_content/pull/473) ([ekohl](https://github.com/ekohl))
+- Support EL9 [\#469](https://github.com/theforeman/puppet-foreman_proxy_content/pull/469) ([evgeni](https://github.com/evgeni))
+- do not install katello-debug by default [\#468](https://github.com/theforeman/puppet-foreman_proxy_content/pull/468) ([evgeni](https://github.com/evgeni))
+
+**Fixed bugs:**
+
+- Require pulpcore 10.x for pulpcore::analytics parameter [\#474](https://github.com/theforeman/puppet-foreman_proxy_content/pull/474) ([ekohl](https://github.com/ekohl))
+- Refs [\#37130](https://projects.theforeman.org/issues/37130): Set bootstrap\_rpm file resource path correctly [\#472](https://github.com/theforeman/puppet-foreman_proxy_content/pull/472) ([ehelms](https://github.com/ehelms))
+- Fixes [\#37130](https://projects.theforeman.org/issues/37130) - set owner, group and mode for bootstrap RPM [\#471](https://github.com/theforeman/puppet-foreman_proxy_content/pull/471) ([ehelms](https://github.com/ehelms))
+
+## [26.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/26.0.0) (2023-11-28)
+
+[Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/25.0.0...26.0.0)
+
+**Breaking changes:**
+
+- puppetlabs/stdlib: Require 9.x && puppet/trusted\_ca: Allow 5.x [\#453](https://github.com/theforeman/puppet-foreman_proxy_content/pull/453) ([bastelfreak](https://github.com/bastelfreak))
+
+**Implemented enhancements:**
+
+- Mark compatible with theforeman/pulpcore 9.x [\#465](https://github.com/theforeman/puppet-foreman_proxy_content/pull/465) ([ekohl](https://github.com/ekohl))
+- Mark compatible with katello/qpid 11.x [\#464](https://github.com/theforeman/puppet-foreman_proxy_content/pull/464) ([ekohl](https://github.com/ekohl))
+- Mark compatible with puppet-extlib 7.x [\#463](https://github.com/theforeman/puppet-foreman_proxy_content/pull/463) ([ekohl](https://github.com/ekohl))
+- Mark compatible with katello/certs 17.x [\#462](https://github.com/theforeman/puppet-foreman_proxy_content/pull/462) ([ekohl](https://github.com/ekohl))
+- Mark compatible with puppetlabs/apache 11.x [\#460](https://github.com/theforeman/puppet-foreman_proxy_content/pull/460) ([ekohl](https://github.com/ekohl))
+- Add Puppet 8 support [\#454](https://github.com/theforeman/puppet-foreman_proxy_content/pull/454) ([bastelfreak](https://github.com/bastelfreak))
+- Fixes [\#36854](https://projects.theforeman.org/issues/36854) - Use HTTP/2 when proxying to Foreman [\#442](https://github.com/theforeman/puppet-foreman_proxy_content/pull/442) ([ekohl](https://github.com/ekohl))
+
 ## [25.0.0](https://github.com/theforeman/puppet-foreman_proxy_content/tree/25.0.0) (2023-09-18)
 
 [Full Changelog](https://github.com/theforeman/puppet-foreman_proxy_content/compare/24.3.0...25.0.0)

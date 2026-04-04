@@ -1,3 +1,7 @@
+require 'puppet/type/file/owner'
+require 'puppet/type/file/group'
+require 'puppet/type/file/mode'
+
 Puppet::Type.newtype(:bootstrap_rpm) do
   desc 'bootstrap_rpm creates an RPM with CA certificate and subscription-manager configuration'
 
@@ -13,6 +17,18 @@ Puppet::Type.newtype(:bootstrap_rpm) do
 
   newparam(:dest) do
     desc "Location on disk to deploy the bootstrap RPM"
+  end
+
+  newparam(:owner, parent: Puppet::Type::File::Owner) do
+    desc "Specifies the owner of the private key. Valid options: a string containing a username or integer containing a uid."
+  end
+
+  newparam(:group, parent: Puppet::Type::File::Group) do
+    desc "Specifies a permissions group for the private key. Valid options: a string containing a group name or integer containing a gid."
+  end
+
+  newparam(:mode, parent: Puppet::Type::File::Mode) do
+    desc "Specifies the permissions mode of the private key. Valid options: a string containing a permission mode value in octal notation."
   end
 
   newproperty(:symlink) do

@@ -22,9 +22,7 @@
 #
 # === Advanced parameters:
 #
-# $reverse_proxy::                             Add reverse proxy to the parent
-#
-# $reverse_proxy_port::                        Reverse proxy listening port
+# $reverse_proxy_backend_protocol::            Configure the protocol used by the reverse proxy to connect to Foreman
 #
 # $pulpcore_allowed_content_checksums::        List of checksums to use for pulpcore content operations
 #
@@ -70,17 +68,20 @@
 #
 # $pulpcore_additional_export_paths::          Additional allowed paths that Pulpcore can use for content exports
 #
-# $pulpcore_telemetry::                        Enable upload of anonymous usage data to https://analytics.pulpproject.org/
+# $pulpcore_analytics::                        Enable upload of anonymous usage data to https://analytics.pulpproject.org/
 #
 # $pulpcore_hide_guarded_distributions::       Hide distributions that are protected by a content guard from the default listing
 #
 # $pulpcore_import_workers_percent::           What percentage of available-workers will pulpcore use for import tasks at a time
 #
+# $container_gateway_database_max_connections:: Maximum number of database connections for the container gateway
+#
+# $container_gateway_database_pool_timeout::   Database connection pool timeout in seconds for the container gateway
+#
 class foreman_proxy_content (
   Boolean $pulpcore_mirror = false,
 
-  Boolean $reverse_proxy = false,
-  Stdlib::Port $reverse_proxy_port = 8443,
+  Enum['h2', 'https'] $reverse_proxy_backend_protocol = 'h2',
 
   Boolean $enable_yum = true,
   Boolean $enable_file = true,
@@ -110,16 +111,18 @@ class foreman_proxy_content (
   Optional[Variant[Integer[1], Enum['None']]] $pulpcore_cache_expires_ttl = undef,
   Variant[Stdlib::Absolutepath, Array[Stdlib::Absolutepath]] $pulpcore_additional_import_paths = [],
   Variant[Stdlib::Absolutepath, Array[Stdlib::Absolutepath]] $pulpcore_additional_export_paths = [],
-  Boolean $pulpcore_telemetry = false,
+  Boolean $pulpcore_analytics = false,
   Boolean $pulpcore_hide_guarded_distributions = true,
   Optional[Integer[1,100]] $pulpcore_import_workers_percent = undef,
+  Optional[Integer] $container_gateway_database_max_connections = undef,
+  Optional[Integer] $container_gateway_database_pool_timeout = undef,
 ) inherits foreman_proxy_content::params {
   include certs
   include foreman_proxy
 
   $foreman_url = $foreman_proxy::foreman_base_url
   $foreman_host = foreman_proxy_content::host_from_url($foreman_url)
-  $reverse_proxy_real = $pulpcore_mirror or $reverse_proxy
+  $proxy_foreman_url = $foreman_url.regsubst('https://', "${reverse_proxy_backend_protocol}://")
 
   # TODO: make it configurable
   # https://github.com/theforeman/puppet-foreman_proxy_content/issues/407
@@ -129,43 +132,13 @@ class foreman_proxy_content (
   $rhsm_port = 443
 
   $insights_path = '/redhat_access'
-
-  ensure_packages('katello-debug')
+  $lightspeed_path = '/api/lightspeed'
+  $registration_commands_path = '/api/registration_commands'
 
   include certs::foreman_proxy
   Class['certs::foreman_proxy'] ~> Service['foreman-proxy']
 
-  if $reverse_proxy_real {
-    foreman_proxy_content::reverse_proxy { "rhsm-pulpcore-https-${reverse_proxy_port}":
-      path_url_map => { '/' => "${foreman_url}/" },
-      port         => $reverse_proxy_port,
-      priority     => '10',
-      before       => Class['pulpcore::apache'],
-    }
-  }
-
-  if $pulpcore_mirror {
-    $pulpcore_https_vhost_name = "rhsm-pulpcore-https-${rhsm_port}"
-
-    if $rhsm_port != $reverse_proxy_port {
-      foreman_proxy_content::reverse_proxy { $pulpcore_https_vhost_name:
-        path_url_map => {
-          $rhsm_path     => "${foreman_url}${rhsm_path}",
-          $insights_path => "${foreman_url}${insights_path}",
-        },
-        port         => $rhsm_port,
-        priority     => '10',
-        before       => Class['pulpcore::apache'],
-      }
-    }
-  }
-
   include foreman_proxy_content::pub_dir
-
-  class { 'qpid::router':
-    ensure => 'absent',
-  }
-  contain qpid::router
 
   if $pulpcore_mirror {
     $base_allowed_import_paths    = ['/var/lib/pulp/sync_imports']
@@ -202,7 +175,7 @@ class foreman_proxy_content (
     $serveraliases = $certs::apache::cname
     $priority = '10'
     $apache_http_vhost = undef
-    $apache_https_vhost = $pulpcore_https_vhost_name
+    $apache_https_vhost = "rhsm-pulpcore-https-${rhsm_port}"
     $apache_https_cert = undef
     $apache_https_key = undef
     $apache_https_ca = undef
@@ -256,7 +229,7 @@ class foreman_proxy_content (
     cache_enabled                  => $pulpcore_cache_enabled,
     cache_expires_ttl              => $pulpcore_cache_expires_ttl,
     before                         => Class['foreman_proxy::plugin::pulp'],
-    telemetry                      => $pulpcore_telemetry,
+    analytics                      => $pulpcore_analytics,
     hide_guarded_distributions     => $pulpcore_hide_guarded_distributions,
     import_workers_percent         => $pulpcore_import_workers_percent,
   }
@@ -270,6 +243,19 @@ class foreman_proxy_content (
       key          => $certs::foreman::client_key,
       require      => Class['certs::foreman'],
     }
+  } elsif $pulpcore_mirror {
+    foreman_proxy_content::reverse_proxy { $apache_https_vhost:
+      docroot      => $pulpcore::apache_docroot,
+      path_url_map => {
+        $rhsm_path                  => "${proxy_foreman_url}${rhsm_path}",
+        $insights_path              => "${proxy_foreman_url}${insights_path}",
+        $lightspeed_path            => "${proxy_foreman_url}${lightspeed_path}",
+        $registration_commands_path => "${proxy_foreman_url}${registration_commands_path}",
+      },
+      port         => $rhsm_port,
+      priority     => '10',
+      before       => Class['pulpcore::apache'],
+    }
   }
 
   if $enable_docker {
@@ -277,11 +263,19 @@ class foreman_proxy_content (
     unless $shared_with_foreman_vhost {
       class { 'foreman_proxy_content::container':
         pulpcore_https_vhost => $apache_https_vhost,
+        cname                => $certs::foreman_proxy::hostname,
       }
 
       class { 'foreman_proxy::plugin::container_gateway':
-        pulp_endpoint => "https://${servername}",
+        pulp_endpoint            => "https://${servername}",
+        client_endpoint          => "https://${client_facing_servername}",
+        database_max_connections => $container_gateway_database_max_connections,
+        database_pool_timeout    => $container_gateway_database_pool_timeout,
       }
+    }
+  } else {
+    class { 'foreman_proxy::plugin::container_gateway':
+      version => 'absent',
     }
   }
   if $enable_file {
@@ -327,9 +321,14 @@ class foreman_proxy_content (
   }
 
   class { 'foreman_proxy_content::bootstrap_rpm':
-    rhsm_hostname => $client_facing_servername,
-    rhsm_port     => $rhsm_port,
-    rhsm_path     => $rhsm_path,
+    rhsm_hostname   => $client_facing_servername,
+    rhsm_port       => $rhsm_port,
+    rhsm_path       => $rhsm_path,
+    server_ca_cert  => $certs::ca::server_ca_path,
+    server_ca_name  => $certs::server_ca_name,
+    default_ca_cert => $certs::ca::default_ca_path,
+    default_ca_name => $certs::default_ca_name,
+    require         => Class['certs'],
   }
 
   # smart_proxy_pulp dynamically retrieves the Pulp content types and Katello

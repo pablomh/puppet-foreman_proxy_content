@@ -17,13 +17,13 @@ describe 'foreman_proxy_content::reverse_proxy' do
         it { is_expected.to compile.with_all_deps }
         it do
           is_expected.to contain_apache__vhost('my-reverse-proxy')
-            .with_servername(facts[:fqdn])
+            .with_servername(facts[:networking]['fqdn'])
             .with_serveraliases([])
-            .with_port(8443)
+            .with_port(443)
             .with_proxy_pass([{
               'path' => '/',
-              'url' => "https://#{facts[:fqdn]}/",
-              'reverse_urls' => ["https://#{facts[:fqdn]}/"],
+              'url' => "https://#{facts[:networking]['fqdn']}/",
+              'reverse_urls' => ["https://#{facts[:networking]['fqdn']}/"],
               'params' => {'disablereuse' => 'on', 'retry' => '0'},
             }])
         end
@@ -75,6 +75,29 @@ describe 'foreman_proxy_content::reverse_proxy' do
 
           it { is_expected.to compile.with_all_deps }
           it { is_expected.to contain_apache__vhost('katello-reverse-proxy').with_keepalive('on') }
+        end
+
+        context 'access log format' do
+          let(:title) { 'katello-reverse-proxy' }
+
+          it 'defines foreman_combined log format alias by default' do
+            is_expected.to contain_apache__vhost('katello-reverse-proxy')
+              .with_log_formats({ 'foreman_combined' => '%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D \"%{X-Forwarded-For}i\"' })
+          end
+
+          it 'uses default combined format when access_log_format is not set' do
+            is_expected.to contain_apache__vhost('katello-reverse-proxy')
+              .with_access_log_format(nil)
+          end
+
+          context 'with access_log_format set to foreman_combined' do
+            let(:params) { super().merge(access_log_format: 'foreman_combined') }
+
+            it 'passes access_log_format to the vhost' do
+              is_expected.to contain_apache__vhost('katello-reverse-proxy')
+                .with_access_log_format('foreman_combined')
+            end
+          end
         end
 
         context 'with proxy_pass_params' do

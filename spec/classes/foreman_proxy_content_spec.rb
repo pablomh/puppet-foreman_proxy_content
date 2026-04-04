@@ -7,7 +7,6 @@ describe 'foreman_proxy_content' do
 
       context 'without parameters' do
         it { is_expected.to compile.with_all_deps }
-        it { is_expected.to contain_package('katello-debug') }
         it { is_expected.to contain_class('foreman_proxy_content::pub_dir') }
         it do
           is_expected.to contain_class('pulpcore')
@@ -16,7 +15,7 @@ describe 'foreman_proxy_content' do
             .with(content_service_worker_timeout: 90)
             .with(api_service_worker_timeout: 90)
             .with(allowed_content_checksums: ['sha1', 'sha224', 'sha256', 'sha384', 'sha512'])
-            .with(api_client_auth_cn_map: {facts[:fqdn] => 'admin'})
+            .with(api_client_auth_cn_map: {facts[:networking]['fqdn'] => 'admin'})
             .with(allowed_import_path: ['/var/lib/pulp/sync_imports', '/var/lib/pulp/imports'])
             .with(allowed_export_path: ['/var/lib/pulp/exports'])
             .that_comes_before('Class[foreman_proxy::plugin::pulp]')
@@ -24,7 +23,7 @@ describe 'foreman_proxy_content' do
 
         it do
           is_expected.to contain_class('foreman_proxy::plugin::pulp')
-            .with_rhsm_url("https://#{facts[:fqdn]}:443/rhsm")
+            .with_rhsm_url("https://#{facts[:networking]['fqdn']}:443/rhsm")
         end
 
         context 'with custom import/export paths as arrays' do
@@ -197,25 +196,62 @@ describe 'foreman_proxy_content' do
         end
         it do
           is_expected.to contain_class('foreman_proxy::plugin::pulp')
-            .with_rhsm_url("https://#{facts[:fqdn]}:443/rhsm")
+            .with_rhsm_url("https://#{facts[:networking]['fqdn']}:443/rhsm")
         end
         it do
-          is_expected.to contain_foreman_proxy_content__reverse_proxy('rhsm-pulpcore-https-8443')
-            .with(path_url_map: {'/' => 'https://foo.example.com/'})
-            .with(port: 8443)
-            .with(priority: '10')
-            .that_comes_before('Class[pulpcore::apache]')
+          is_expected.not_to contain_foreman_proxy_content__reverse_proxy('rhsm-pulpcore-https-8443')
         end
         it do
           is_expected.to contain_foreman_proxy_content__reverse_proxy('rhsm-pulpcore-https-443')
-            .with(path_url_map: {'/rhsm' => 'https://foo.example.com/rhsm', '/redhat_access' => 'https://foo.example.com/redhat_access'})
+            .with(path_url_map: {
+              '/rhsm' => 'h2://foo.example.com/rhsm',
+              '/redhat_access' => 'h2://foo.example.com/redhat_access',
+              '/api/lightspeed' => 'h2://foo.example.com/api/lightspeed',
+              '/api/registration_commands' => 'h2://foo.example.com/api/registration_commands',
+            })
             .with(port: 443)
             .with(priority: '10')
             .that_comes_before('Class[pulpcore::apache]')
         end
         it do
           is_expected.to contain_pulpcore__apache__fragment('gpg_key_proxy')
-            .with_https_content(%r{ProxyPass /katello/api/v2/repositories/ https://foo\.example\.com/katello/api/v2/repositories/})
+            .with_https_content(%r{ProxyPass /katello/api/v2/repositories/ h2://foo\.example\.com/katello/api/v2/repositories/})
+        end
+      end
+
+      context 'with container gateway database settings' do
+        let(:params) do
+          {
+            pulpcore_mirror: true,
+            container_gateway_database_max_connections: 100,
+            container_gateway_database_pool_timeout: 60,
+          }
+        end
+
+        it { is_expected.to compile.with_all_deps }
+        it do
+          is_expected.to contain_class('foreman_proxy::plugin::container_gateway')
+            .with_pulp_endpoint("https://#{facts[:networking]['fqdn']}")
+            .with_client_endpoint("https://#{facts[:networking]['fqdn']}")
+            .with_database_max_connections(100)
+            .with_database_pool_timeout(60)
+        end
+      end
+
+      context 'with default container gateway database settings' do
+        let(:params) do
+          {
+            pulpcore_mirror: true,
+          }
+        end
+
+        it { is_expected.to compile.with_all_deps }
+        it do
+          is_expected.to contain_class('foreman_proxy::plugin::container_gateway')
+            .with_pulp_endpoint("https://#{facts[:networking]['fqdn']}")
+            .with_client_endpoint("https://#{facts[:networking]['fqdn']}")
+            .with_database_max_connections(nil)
+            .with_database_pool_timeout(nil)
         end
       end
 
